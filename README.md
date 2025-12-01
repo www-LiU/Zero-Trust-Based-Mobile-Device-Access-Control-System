@@ -86,15 +86,25 @@ python run.py
 ## 📂 项目结构
 
 ZeroTrustDemo/
+
 ├── app/
+
 │   ├── __init__.py       # Flask 应用工厂
+
 │   ├── models.py         # 数据库模型 (User, AccessLog)
+
 │   ├── core.py           # 核心算法 (TrustEngine)
+
 │   ├── routes.py         # 业务逻辑与 API
+
 │   └── templates/        # 前端页面
+
 │       ├── dashboard.html # 核心演示大屏
+
 │       ├── login.html     # 登录页
+
 │       └── mfa.html       # MFA 验证页
+
 ├── zerotrust.db          # 自动生成的 SQLite 数据库
 ├── config.py             # 项目配置
 ├── run.py                # 启动入口
