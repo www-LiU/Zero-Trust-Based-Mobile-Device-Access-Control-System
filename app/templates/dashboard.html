@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- 顶部状态栏 -->
+{% if status == 'BLOCKED' %}
+<div class="alert alert-danger d-flex align-items-center">
+    <i class="bi bi-exclamation-octagon-fill me-2" style="font-size: 1.5rem;"></i>
+    <div>
+        <strong>访问被拒绝 (Access Denied)</strong><br>
+        {{ msg }}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-success d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-check-circle-fill me-2"></i> {{ msg }}</span>
+    <span class="badge bg-white text-success border">用户: {{ username }}</span>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- 左侧：指纹与控制 -->
+    <div class="col-lg-4 mb-4">
+        <!-- 1. 仪表盘 -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title text-center text-secondary">实时信誉评分</h5>
+                <div id="scoreGauge" style="width: 100%; height: 250px;"></div>
+            </div>
+        </div>
+
+        <!-- 2. 设备指纹卡片 -->
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-bold">
+                <i class="bi bi-fingerprint text-primary"></i> 设备环境感知
+            </div>
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>操作系统</span>
+                    <span class="fw-bold">{{ device.os }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>浏览器</span>
+                    <span class="fw-bold">{{ device.browser }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>IP 地址</span>
+                    <span class="font-monospace">{{ device.ip }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>设备类型</span>
+                    <span>{{ device.type }}</span>
+                </li>
+            </ul>
+            <div class="card-footer bg-light text-muted" style="font-size: 10px;">
+                User-Agent: {{ device.ua_raw }}
+            </div>
+        </div>
+
+        <!-- 3. 攻击模拟器 -->
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-joystick"></i> 攻击模拟控制台
+            </div>
+            <div class="card-body d-grid gap-2">
+                <button onclick="runSimulation('risk_wifi')" class="btn btn-outline-warning btn-sm text-dark">
+                    <i class="bi bi-wifi-off"></i> 模拟切换不安全 Wi-Fi
+                </button>
+                <button onclick="runSimulation('attack_sql')" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-bug-fill"></i> 模拟 SQL 注入攻击
+                </button>
+                <hr class="my-1">
+                <button onclick="runSimulation('reset')" class="btn btn-success btn-sm">
+                    <i class="bi bi-arrow-counterclockwise"></i> 重置系统状态
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：详情与日志 -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5>🛡️ 安全审计日志流</h5>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                    <div class="list-group">
+                        {% for log in logs %}
+                        <div class="list-group-item list-group-item-action list-group-item-danger">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><i class="bi bi-shield-x"></i> 风险警告</h6>
+                            </div>
+                            <p class="mb-1 small">{{ log }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted mt-5">
+                        <i class="bi bi-shield-check" style="font-size: 4rem; color: #d1e7dd;"></i>
+                        <p class="mt-3">当前会话健康<br>未检测到异常行为</p>
+                    </div>
+                {% endif %}
+
+                <!-- 策略说明图例 -->
+                <div class="mt-5 p-3 bg-light rounded border">
+                    <p class="mb-2 fw-bold small text-secondary">动态访问控制策略 (ABAC):</p>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 50%">拦截 (&lt;50)</div>
+                        <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: 30%">MFA (50-80)</div>
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 20%">允许 (&gt;80)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 初始化仪表盘
+    var myChart = echarts.init(document.getElementById('scoreGauge'));
+    var option = {
+        series: [{
+            type: 'gauge',
+            min: 0, max: 100,
+            splitNumber: 5,
+            itemStyle: { color: '#58D9F9' },
+            progress: { show: true, width: 18 },
+            pointer: { icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z', length: '12%', width: 10, offsetCenter: [0, '-60%'], itemStyle: { color: 'auto' } },
+            axisLine: { lineStyle: { width: 18, color: [[0.5, '#dc3545'], [0.8, '#ffc107'], [1, '#198754']] } },
+            axisTick: { distance: -18, length: 8, lineStyle: { color: '#fff', width: 2 } },
+            splitLine: { distance: -18, length: 30, lineStyle: { color: '#fff', width: 4 } },
+            axisLabel: { color: 'inherit', distance: 25, fontSize: 12 },
+            detail: { valueAnimation: true, formatter: '{value} 分', color: 'inherit', fontSize: 24 },
+            data: [{ value: {{ score }} }]
+        }]
+    };
+    myChart.setOption(option);
+</script>
+{% endblock %}

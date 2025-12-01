@@ -1,0 +1,15 @@
+# .gitignore
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+
+# 数据库文件 (每次运行会自动生成，不要上传)
+*.db
+zerotrust.db
+
+
+# IDE 配置文件夹 (VSCode/PyCharm)
+.idea/
+.vscode/
+.DS_Store

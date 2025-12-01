@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card border-warning shadow">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <i class="bi bi-shield-lock"></i> 安全等级降级警告
+            </div>
+            <div class="card-body text-center p-5">
+                <h2 class="text-warning display-4 mb-3">{{ score }} <small class="fs-6 text-muted">/ 100</small></h2>
+                <p class="card-text text-muted mb-4">
+                    系统检测到您的信誉分已低于 80 分。<br>
+                    根据零信任策略，必须进行二次身份验证 (MFA)。
+                </p>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <input type="text" name="code" class="form-control form-control-lg text-center letter-spacing"
+                               placeholder="请输入验证码 (演示: 1234)" style="letter-spacing: 5px;">
+                    </div>
+                    {% if error %}
+                    <div class="text-danger mb-3">{{ error }}</div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-dark w-100 py-2">验证并继续</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
